@@ -1,3 +1,5 @@
+#pragma once
+
 #include <string>
 #include <unordered_map>
 #include <optional>
@@ -6,7 +8,7 @@
 template <class T>
 class Storage {
 public:
-    bool set(const std::string& key, const T& value) {
+    void set(const std::string& key, const T& value) {
         return data_.insert_or_assign(key, value).second;
     }
 
