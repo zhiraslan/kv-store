@@ -1,4 +1,0 @@
-storage 2 0.000879573
-Storage.SetAndGetString 1 0.00206629
-Storage.SetAndGetInt 1 0.00157885
----

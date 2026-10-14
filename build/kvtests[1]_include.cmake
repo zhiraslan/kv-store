@@ -1,5 +1,0 @@
-if(EXISTS "/home/zhiraslan/kv-store/build/kvtests[1]_tests.cmake")
-  include("/home/zhiraslan/kv-store/build/kvtests[1]_tests.cmake")
-else()
-  add_test(kvtests_NOT_BUILT kvtests_NOT_BUILT)
-endif()
