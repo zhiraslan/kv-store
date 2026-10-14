@@ -9,7 +9,7 @@ template <class T>
 class Storage {
 public:
     void set(const std::string& key, const T& value) {
-        return data_.insert_or_assign(key, value).second;
+        data_.insert_or_assign(key, value);
     }
 
     std::optional<T> get(const std::string& key) const {

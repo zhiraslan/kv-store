@@ -65,6 +65,16 @@ CMAKE_BINARY_DIR = /home/zhiraslan/kv-store/build
 #=============================================================================
 # Targets provided globally by CMake.
 
+# Special rule for the target test
+test:
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Running tests..."
+	/usr/bin/ctest --force-new-ctest-process $(ARGS)
+.PHONY : test
+
+# Special rule for the target test
+test/fast: test
+.PHONY : test/fast
+
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "No interactive CMake dialog available..."
@@ -129,6 +139,19 @@ kvstore/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/kvstore.dir/build.make CMakeFiles/kvstore.dir/build
 .PHONY : kvstore/fast
 
+#=============================================================================
+# Target rules for targets named kvtests
+
+# Build rule for target.
+kvtests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 kvtests
+.PHONY : kvtests
+
+# fast build rule for target.
+kvtests/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/kvtests.dir/build.make CMakeFiles/kvtests.dir/build
+.PHONY : kvtests/fast
+
 main.o: main.cpp.o
 .PHONY : main.o
 
@@ -153,6 +176,30 @@ main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/kvstore.dir/build.make CMakeFiles/kvstore.dir/main.cpp.s
 .PHONY : main.cpp.s
 
+tests/test_storage.o: tests/test_storage.cpp.o
+.PHONY : tests/test_storage.o
+
+# target to build an object file
+tests/test_storage.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/kvtests.dir/build.make CMakeFiles/kvtests.dir/tests/test_storage.cpp.o
+.PHONY : tests/test_storage.cpp.o
+
+tests/test_storage.i: tests/test_storage.cpp.i
+.PHONY : tests/test_storage.i
+
+# target to preprocess a source file
+tests/test_storage.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/kvtests.dir/build.make CMakeFiles/kvtests.dir/tests/test_storage.cpp.i
+.PHONY : tests/test_storage.cpp.i
+
+tests/test_storage.s: tests/test_storage.cpp.s
+.PHONY : tests/test_storage.s
+
+# target to generate assembly for a file
+tests/test_storage.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/kvtests.dir/build.make CMakeFiles/kvtests.dir/tests/test_storage.cpp.s
+.PHONY : tests/test_storage.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -161,10 +208,15 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
+	@echo "... test"
 	@echo "... kvstore"
+	@echo "... kvtests"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
+	@echo "... tests/test_storage.o"
+	@echo "... tests/test_storage.i"
+	@echo "... tests/test_storage.s"
 .PHONY : help
 
 

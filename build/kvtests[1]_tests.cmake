@@ -1,0 +1,7 @@
+add_test([=[Storage.SetAndGetString]=]  /home/zhiraslan/kv-store/build/kvtests [==[--gtest_filter=Storage.SetAndGetString]==] --gtest_also_run_disabled_tests)
+set_tests_properties([=[Storage.SetAndGetString]=]  PROPERTIES WORKING_DIRECTORY /home/zhiraslan/kv-store/build SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
+add_test([=[Storage.SetAndGetInt]=]  /home/zhiraslan/kv-store/build/kvtests [==[--gtest_filter=Storage.SetAndGetInt]==] --gtest_also_run_disabled_tests)
+set_tests_properties([=[Storage.SetAndGetInt]=]  PROPERTIES WORKING_DIRECTORY /home/zhiraslan/kv-store/build SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
+add_test([=[Storage.ValueExists]=]  /home/zhiraslan/kv-store/build/kvtests [==[--gtest_filter=Storage.ValueExists]==] --gtest_also_run_disabled_tests)
+set_tests_properties([=[Storage.ValueExists]=]  PROPERTIES WORKING_DIRECTORY /home/zhiraslan/kv-store/build SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
+set(  kvtests_TESTS Storage.SetAndGetString Storage.SetAndGetInt Storage.ValueExists)

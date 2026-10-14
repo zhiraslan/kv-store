@@ -1,0 +1,57 @@
+Start testing: Oct 14 03:07 MSK
+----------------------------------------------------------
+1/2 Testing: Storage.SetAndGetString
+1/2 Test: Storage.SetAndGetString
+Command: "/home/zhiraslan/kv-store/build/kvtests" "--gtest_filter=Storage.SetAndGetString" "--gtest_also_run_disabled_tests"
+Directory: /home/zhiraslan/kv-store/build
+"Storage.SetAndGetString" start time: Oct 14 03:07 MSK
+Output:
+----------------------------------------------------------
+Running main() from ./googletest/src/gtest_main.cc
+Note: Google Test filter = Storage.SetAndGetString
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from Storage
+[ RUN      ] Storage.SetAndGetString
+[       OK ] Storage.SetAndGetString (0 ms)
+[----------] 1 test from Storage (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"Storage.SetAndGetString" end time: Oct 14 03:07 MSK
+"Storage.SetAndGetString" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/2 Testing: Storage.SetAndGetInt
+2/2 Test: Storage.SetAndGetInt
+Command: "/home/zhiraslan/kv-store/build/kvtests" "--gtest_filter=Storage.SetAndGetInt" "--gtest_also_run_disabled_tests"
+Directory: /home/zhiraslan/kv-store/build
+"Storage.SetAndGetInt" start time: Oct 14 03:07 MSK
+Output:
+----------------------------------------------------------
+Running main() from ./googletest/src/gtest_main.cc
+Note: Google Test filter = Storage.SetAndGetInt
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from Storage
+[ RUN      ] Storage.SetAndGetInt
+[       OK ] Storage.SetAndGetInt (0 ms)
+[----------] 1 test from Storage (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"Storage.SetAndGetInt" end time: Oct 14 03:07 MSK
+"Storage.SetAndGetInt" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Oct 14 03:07 MSK
