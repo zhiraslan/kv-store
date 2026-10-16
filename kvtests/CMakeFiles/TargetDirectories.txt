@@ -1,0 +1,5 @@
+/home/zhiraslan/kv-store/kvtests/CMakeFiles/kvstore.dir
+/home/zhiraslan/kv-store/kvtests/CMakeFiles/kvtests.dir
+/home/zhiraslan/kv-store/kvtests/CMakeFiles/test.dir
+/home/zhiraslan/kv-store/kvtests/CMakeFiles/edit_cache.dir
+/home/zhiraslan/kv-store/kvtests/CMakeFiles/rebuild_cache.dir

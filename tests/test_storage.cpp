@@ -21,3 +21,20 @@ TEST(Storage, ValueExists) {
     storage.set("non-existent", "existent");
     ASSERT_TRUE(storage.get("non-existent").has_value());
 }
+
+TEST(Storage, RewriteKey) {
+    Storage<std::string> storage;
+    storage.set("zhiraslan", "shedzhem");
+    EXPECT_EQ(storage.get("zhiraslan"), "shedzhem");
+    storage.set("zhiraslan", "GOAT");
+    EXPECT_EQ(storage.get("zhiraslan"), "GOAT");
+}
+
+TEST(Storage, Deletion) {
+    Storage<std::string> storage;
+    storage.set("zhiraslan", "shedzhem");
+    ASSERT_TRUE(storage.get("zhiraslan").has_value());
+    ASSERT_TRUE(storage.del("zhiraslan"));
+    ASSERT_FALSE(storage.del("non-existent"));
+    ASSERT_FALSE(storage.get("zhiraslan").has_value());
+}
