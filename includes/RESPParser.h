@@ -15,7 +15,8 @@ enum PARSE_STATUS {
 class RESPParser {
 public:
     std::vector<std::string> parseRESP(const std::string& input);
+
+    PARSE_STATUS getStatus() const;
 private:
-    bool first_char_ = true;
     PARSE_STATUS status_ = PARSE_STATUS::INIT;
 };
