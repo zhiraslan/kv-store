@@ -5,7 +5,7 @@ project(kv-store)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_executable(kvstore main.cpp src/Service.cpp src/RESPParser.cpp)
+add_executable(kvstore main.cpp src/Service.cpp src/RESPParser.cpp src/TCPServer.cpp)
 
 target_include_directories(kvstore PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/includes")
 
