@@ -8,38 +8,39 @@ std::vector<std::string> RESPParser::parseRESP(const std::string& input) {
     int count = 0;
     int count_char_in_token = 0;
     std::string substring = "";
+    PARSE_STATUS status = PARSE_STATUS::INIT;
 
     for (size_t i = 0; i < input.size(); ++i) {
         size_t j = i;
         if (std::isdigit(input[i])) {
-            switch (status_) {
+            switch (status) {
                 case PARSE_STATUS::INIT:
-                    status_ = PARSE_STATUS::NUMBER;
+                    status = PARSE_STATUS::NUMBER;
                     substring += input[i]; 
                     break;
                 case PARSE_STATUS::DELIMITER:
-                    status_ = PARSE_STATUS::NUMBER;
+                    status = PARSE_STATUS::NUMBER;
                     substring = input[i]; 
                     break;
                 case PARSE_STATUS::NUMBER:
                     substring += input[i];
                     break;
-                default: // status_ = PARSE_STATUS::TOKEN
+                default: // status = PARSE_STATUS::TOKEN
                     substring += input[i];
                     break;
             }
         }
         else {
-            switch (status_) {
+            switch (status) {
                 case PARSE_STATUS::INIT:
                     break;
                 case PARSE_STATUS::DELIMITER:
                     if (substring.size() == count) {
                         if (count == 3) {
-                            status_ = PARSE_STATUS::NUMBER;
+                            status = PARSE_STATUS::NUMBER;
                         }
                         else {
-                            status_ = PARSE_STATUS::TOKEN;
+                            status = PARSE_STATUS::TOKEN;
                         }
                             
                         substring = input[i];
@@ -58,14 +59,14 @@ std::vector<std::string> RESPParser::parseRESP(const std::string& input) {
                         count = 2;
                     }
                     
-                    status_ = PARSE_STATUS::DELIMITER;
+                    status = PARSE_STATUS::DELIMITER;
                     substring = input[i];
                     break;
-                default: // status_ = PARSE_STATUS::TOKEN
+                default: // status = PARSE_STATUS::TOKEN
                     if (substring.size() == count_char_in_token) {
                         tokens.push_back(substring);
 
-                        status_ = PARSE_STATUS::DELIMITER;
+                        status = PARSE_STATUS::DELIMITER;
                         substring = input[i];
                         count = tokens.size() == count_token ? 2 : 3;
                     }
@@ -76,8 +77,8 @@ std::vector<std::string> RESPParser::parseRESP(const std::string& input) {
             }
         }
     }
-    if (tokens.size() == count_token && substring.size() == count && status_ == PARSE_STATUS::DELIMITER) {
-        status_ = PARSE_STATUS::INIT;
+    if (tokens.size() == count_token && substring.size() == count && status == PARSE_STATUS::DELIMITER) {
+        status = PARSE_STATUS::INIT;
     }
     return tokens;
 }

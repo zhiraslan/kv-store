@@ -16,7 +16,7 @@ private:
     void handleClient(int client_fd);
     void closeListener();
 
-    std::string ip_addr_ = "";
+    std::string ip_ = "";
     int port_ = 0;
     int listen_fd_ = -1;
 };
