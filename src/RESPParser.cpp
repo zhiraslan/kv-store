@@ -84,6 +84,6 @@ std::vector<std::string> RESPParser::parseRESP(const std::string& input) {
 }
 
 
-PARSE_STATUS RESPParser::getStatus() const {
-    return static_cast<PARSE_STATUS>(status_);
-}
+// PARSE_STATUS RESPParser::getStatus() const {
+//     return static_cast<PARSE_STATUS>(status_);
+// }

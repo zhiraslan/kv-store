@@ -6,9 +6,11 @@
 class TCPServer {
 public:
     TCPServer(std::string ip_addr, int port);
-    ~TCPServer();
     TCPServer(const TCPServer&) = delete;
     TCPServer& operator=(const TCPServer&) = delete;
+    
+    ~TCPServer();
+
     void run();
 private:
     bool openListener();

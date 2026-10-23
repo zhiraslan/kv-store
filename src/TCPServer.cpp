@@ -8,6 +8,7 @@
 #include <array>
 #include <cerrno>
 #include "TCPServer.h"
+#include "Connection.h"
 
 
 TCPServer::TCPServer(std::string ip_addr, int port)
@@ -104,7 +105,7 @@ void TCPServer::acceptLoop() {
             }            
         }
 
-        std::array<char, INET_ADDRSTRLEN> client_ip;
+        std::array<char, INET_ADDRSTRLEN> client_ip{};
         if (inet_ntop(AF_INET, &client_addr.sin_addr, client_ip.data(), client_ip.size()) == nullptr) {
             std::perror("inet_ntop");
             
@@ -115,8 +116,8 @@ void TCPServer::acceptLoop() {
             continue;
         }
 
-        std::cout << "Client connected: " << client_ip.data() << ':' << ntohs(client_addr.sin_port) << '\n';
-
+        Connection connection(client_fd, client_ip, client_addr.sin_port);
+        connection.run();
         handleClient(client_fd);
     }
 }
