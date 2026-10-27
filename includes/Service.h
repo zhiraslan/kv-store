@@ -9,7 +9,7 @@
 
 class Service {
 public:
-    static Service* getInstance();
+    static Service* instance();
 
     Service(const Service&) = delete;
     Service& operator=(const Service&) = delete;

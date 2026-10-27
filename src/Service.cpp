@@ -1,7 +1,7 @@
 #include "Service.h"
 
 
-Service* Service::getInstance() {
+Service* Service::instance() {
     static Service service;
     return &service;
 }
@@ -23,19 +23,3 @@ std::size_t Service::del(const std::vector<std::string>& keys) {
 
     return n;
 }
-
-
-class Service {
-public:
-    static Service* getInstance();
-
-    Service(const Service&) = delete;
-    Service& operator=(const Service&) = delete;
-
-    void set(const std::string& key, const std::string& value);
-    std::optional<std::string> get(const std::string& key) const;
-    std::size_t del(const std::vector<std::string>& keys);
-private:
-    Service() = default;
-    Storage<std::string> storage_;
-};

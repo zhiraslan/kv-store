@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <string>
 #include <vector>
+#include <iostream>
 #include "RESPParser.h"
 
 
