@@ -21,6 +21,10 @@ TEST(RESPParser, GetStatus) {
     parser.parseRESP(input);
     EXPECT_EQ(parser.getStatus(), PARSE_STATUS::INIT);
 
+    input = "*3\r\n$3\r\nSET\r\n$5\r\nuser1\r\n$6\r\nA1ice2\r\n";
+    parser.parseRESP(input);
+    EXPECT_EQ(parser.getStatus(), PARSE_STATUS::INIT);
+
     input = "*3\r\n$3\r\nSET\r\n$5\r\nuser1\r\n$6\r\nA1ice2\r";
     parser.parseRESP(input);
     EXPECT_NE(parser.getStatus(), PARSE_STATUS::INIT);

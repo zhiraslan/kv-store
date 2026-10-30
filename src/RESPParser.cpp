@@ -8,15 +8,20 @@ std::vector<std::string> RESPParser::parseRESP(const std::string& input) {
     int count = 0;
     int count_char_in_token = 0;
     std::string substring = "";
-    PARSE_STATUS status_ = PARSE_STATUS::INIT;
+    bool should_stop = false;
 
     for (size_t i = 0; i < input.size(); ++i) {
-        size_t j = i;
         if (std::isdigit(input[i])) {
             switch (status_) {
                 case PARSE_STATUS::INIT:
-                    status_ = PARSE_STATUS::NUMBER;
-                    substring += input[i]; 
+                    if (i == 1) {
+                        status_ = PARSE_STATUS::NUMBER;
+                        substring += input[i];
+                    }
+                    else {
+                        should_stop = true;
+                        status_ = PARSE_STATUS::INVALID;
+                    }                    
                     break;
                 case PARSE_STATUS::DELIMITER:
                     status_ = PARSE_STATUS::NUMBER;
@@ -33,17 +38,26 @@ std::vector<std::string> RESPParser::parseRESP(const std::string& input) {
         else {
             switch (status_) {
                 case PARSE_STATUS::INIT:
+                    if (input[i] != '*') {
+                        should_stop = true;
+                        status_ = PARSE_STATUS::INVALID;
+                    }
+
                     break;
                 case PARSE_STATUS::DELIMITER:
                     if (substring.size() == count) {
-                        if (count == 3) {
+                        if (count == 3 && substring == "\r\n$") {
                             status_ = PARSE_STATUS::NUMBER;
+                            substring = input[i];
+                        }
+                        else if (substring == "\r\n") {
+                            status_ = PARSE_STATUS::TOKEN;
+                            substring = input[i];
                         }
                         else {
-                            status_ = PARSE_STATUS::TOKEN;
-                        }
-                            
-                        substring = input[i];
+                            should_stop = true;
+                            status_ = PARSE_STATUS::INVALID;
+                        }                        
                     }
                     else {
                         substring += input[i];
@@ -76,8 +90,12 @@ std::vector<std::string> RESPParser::parseRESP(const std::string& input) {
                     break;
             }
         }
+
+        if (should_stop) {
+            break;
+        }
     }
-    if (tokens.size() == count_token && substring.size() == count && status_ == PARSE_STATUS::DELIMITER) {
+    if (tokens.size() == count_token && substring == "\r\n" && status_ == PARSE_STATUS::DELIMITER) {
         status_ = PARSE_STATUS::INIT;
     }
     return tokens;

@@ -8,7 +8,8 @@ enum PARSE_STATUS {
     INIT,
     NUMBER,
     TOKEN,
-    DELIMITER
+    DELIMITER,
+    INVALID
 };
 
 
