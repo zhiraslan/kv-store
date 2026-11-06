@@ -2,106 +2,100 @@
 #include "RESPParser.h"
 
 
-std::vector<std::string> RESPParser::parseRESP(const std::string& input) {
-    std::vector<std::string> tokens{};
-    int count_token = 0;
-    int count = 0;
-    int count_char_in_token = 0;
-    std::string substring = "";
-    bool should_stop = false;
-
+ParseResult RESPParser::parseRESP(const std::string& input) {
     for (size_t i = 0; i < input.size(); ++i) {
-        if (std::isdigit(input[i])) {
-            switch (status_) {
-                case PARSE_STATUS::INIT:
-                    if (i == 1) {
-                        status_ = PARSE_STATUS::NUMBER;
-                        substring += input[i];
+        char c = input[i];
+        switch(state_) {
+            case PARSE_STATE::EXPECT_ARRAY_PREFIX:
+                if (c == '*') {
+                    state_ = PARSE_STATE::READ_ARRAY_LENGTH;
+                }
+                else {
+                    status_ = PARSE_STATUS::ERROR;
+                    tokens_ = {};
+                    return {status_, tokens_};
+                }
+                break;
+            case PARSE_STATE::READ_ARRAY_LENGTH:
+            case PARSE_STATE::READ_PAYLOAD_LENGTH:
+                if (std::isdigit(static_cast<unsigned char>(c))) {
+                    substring += c;
+                }
+                else if (c == '\r' && substring.size() != 0) {
+                    if (state_ == PARSE_STATE::READ_ARRAY_LENGTH) {
+                        n_tokens = std::stoi(substring);  // number of tokens
                     }
                     else {
-                        should_stop = true;
-                        status_ = PARSE_STATUS::INVALID;
-                    }                    
-                    break;
-                case PARSE_STATUS::DELIMITER:
-                    status_ = PARSE_STATUS::NUMBER;
-                    substring = input[i]; 
-                    break;
-                case PARSE_STATUS::NUMBER:
-                    substring += input[i];
-                    break;
-                default: // status_ = PARSE_STATUS::TOKEN
-                    substring += input[i];
-                    break;
-            }
-        }
-        else {
-            switch (status_) {
-                case PARSE_STATUS::INIT:
-                    if (input[i] != '*') {
-                        should_stop = true;
-                        status_ = PARSE_STATUS::INVALID;
+                        n_char_in_token = std::stoi(substring);
                     }
+                    state_ = PARSE_STATE::EXPECT_CRLF;
+                    substring = "";
+                }
+                else {
+                    status_ = PARSE_STATUS::ERROR;
+                    tokens_ = {};
+                    return {status_, tokens_};
+                }
+                break;
+            case PARSE_STATE::EXPECT_CRLF:
+                if (c == '\n') {
+                    state_ = pre_token_CRLF ? PARSE_STATE::READ_PAYLOAD_DATA : PARSE_STATE::EXPECT_PAYLOAD_PREFIX;
+                    pre_token_CRLF = !pre_token_CRLF;
 
-                    break;
-                case PARSE_STATUS::DELIMITER:
-                    if (substring.size() == count) {
-                        if (count == 3 && substring == "\r\n$") {
-                            status_ = PARSE_STATUS::NUMBER;
-                            substring = input[i];
-                        }
-                        else if (substring == "\r\n") {
-                            status_ = PARSE_STATUS::TOKEN;
-                            substring = input[i];
-                        }
+                    if (i == input.size() - 1) {
+                        if (tokens_.size() == n_tokens) {status_ = PARSE_STATUS::COMPLETE;}
                         else {
-                            should_stop = true;
-                            status_ = PARSE_STATUS::INVALID;
-                        }                        
+                            status_ = PARSE_STATUS::INCOMPLETE;
+                            return {status_, tokens_};
+                        }
                     }
-                    else {
-                        substring += input[i];
-                    }
-                    break;
-                case PARSE_STATUS::NUMBER:
-                    if (!count_token) {
-                        count_token = std::stoi(substring);
-                        count = 3;
-                    }
-                    else {
-                        count_char_in_token =  std::stoi(substring);
-                        count = 2;
-                    }
-                    
-                    status_ = PARSE_STATUS::DELIMITER;
-                    substring = input[i];
-                    break;
-                default: // status_ = PARSE_STATUS::TOKEN
-                    if (substring.size() == count_char_in_token) {
-                        tokens.push_back(substring);
-
-                        status_ = PARSE_STATUS::DELIMITER;
-                        substring = input[i];
-                        count = tokens.size() == count_token ? 2 : 3;
-                    }
-                    else {
-                        substring += input[i];
-                    }
-                    break;
-            }
-        }
-
-        if (should_stop) {
-            break;
+                }
+                else {
+                    status_ = PARSE_STATUS::ERROR;
+                    tokens_ = {};
+                    return {status_, tokens_};
+                }
+                break;
+            case PARSE_STATE::EXPECT_PAYLOAD_PREFIX:
+                if (c == '$') {
+                    state_ = PARSE_STATE::READ_PAYLOAD_LENGTH;
+                }
+                else {
+                    status_ = PARSE_STATUS::ERROR;
+                    tokens_ = {};
+                    return {status_, tokens_};
+                }
+                break;
+            case PARSE_STATE::READ_PAYLOAD_DATA:
+                if (substring.size() < n_char_in_token) {substring += c;}
+                else if (substring.size() == n_char_in_token && c == '\r') {
+                    tokens_.push_back(substring);
+                    state_ = PARSE_STATE::EXPECT_CRLF;
+                    substring = "";
+                }
+                else {
+                    status_ = PARSE_STATUS::ERROR;
+                    tokens_ = {};
+                    return {status_, tokens_};
+                }
+                break;
         }
     }
-    if (tokens.size() == count_token && substring == "\r\n" && status_ == PARSE_STATUS::DELIMITER) {
-        status_ = PARSE_STATUS::INIT;
-    }
-    return tokens;
+    
+    return {status_, tokens_};
 }
 
 
 PARSE_STATUS RESPParser::getStatus() const {
-    return static_cast<PARSE_STATUS>(status_);
+    return status_;
+}
+
+void RESPParser::reset() {
+    state_ = PARSE_STATE::EXPECT_ARRAY_PREFIX;
+    status_ = PARSE_STATUS::INCOMPLETE;
+    tokens_ = {};
+    n_tokens = 0;
+    n_char_in_token = 0;
+    substring = "";
+    pre_token_CRLF = false;
 }

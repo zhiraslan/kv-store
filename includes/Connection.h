@@ -7,6 +7,7 @@
 class Connection {
 public:
     Connection(int client_fd, const std::array<char, INET_ADDRSTRLEN>& ip, int port);
+    ~Connection();
     void run();
 private:
     int client_fd_ = -1;
