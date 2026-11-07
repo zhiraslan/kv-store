@@ -8,6 +8,7 @@
 #include "Connection.h"
 #include "RESPParser.h"
 #include "Service.h"
+#include "CommandProcessor.h"
 
 
 Connection::Connection(int client_fd, const std::array<char, INET_ADDRSTRLEN>& ip, int port)
@@ -27,6 +28,8 @@ Connection::~Connection() {
 void Connection::run() {
     RESPParser parser;
     std::array<char, 1024> buffer;
+    Service* service = Service::instance();
+    CommandProcessor processor;
 
     while (true) {
         ssize_t bytes_arrived = recv(client_fd_, buffer.data(), buffer.size(), 0);
@@ -52,35 +55,8 @@ void Connection::run() {
         RESP_OPERATOR oper = RESP_OPERATOR::UNKNOWN;
 
         if (result.status == PARSE_STATUS::COMPLETE) {
-            std::string command = result.tokens[0];
-            std::transform(
-                command.begin(),
-                command.end(), 
-                command.begin(),
-                [](unsigned char c) {
-                    return static_cast<char>(std::tolower(c));
-                }
-            );
-
-            Service* service = Service::instance();
-
+            processor.execute(result.tokens);
             
-            if (command == "set") {
-                oper = RESP_OPERATOR::SET;
-                service->set(result.tokens[1], result.tokens[2]);
-            }
-            else if (command =="get") {
-                oper = RESP_OPERATOR::GET;
-                auto value = service->get(result.tokens[1]);
-                if (value)
-            }
-            else if (command =="del") {
-                oper = RESP_OPERATOR::DEL;
-                service->del({result.tokens[1]});
-            }
-            else {
-                oper = RESP_OPERATOR::UNKNOWN;
-            }
 
             parser.reset();
         }
