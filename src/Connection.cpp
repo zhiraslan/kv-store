@@ -49,6 +49,7 @@ void Connection::run() {
 
         std::string chunk(buffer.data(), bytes_arrived);
         ParseResult result = parser.parseRESP(chunk);
+        RESP_OPERATOR oper = RESP_OPERATOR::UNKNOWN;
 
         if (result.status == PARSE_STATUS::COMPLETE) {
             std::string command = result.tokens[0];
@@ -62,26 +63,32 @@ void Connection::run() {
             );
 
             Service* service = Service::instance();
+
             
-            if (command == "set")
+            if (command == "set") {
+                oper = RESP_OPERATOR::SET;
                 service->set(result.tokens[1], result.tokens[2]);
-            else if (command =="get") {
-                auto value = service->get(result.tokens[1]);
-                
             }
-            else if (command =="del")
+            else if (command =="get") {
+                oper = RESP_OPERATOR::GET;
+                auto value = service->get(result.tokens[1]);
+                if (value)
+            }
+            else if (command =="del") {
+                oper = RESP_OPERATOR::DEL;
                 service->del({result.tokens[1]});
-            
+            }
+            else {
+                oper = RESP_OPERATOR::UNKNOWN;
+            }
 
             parser.reset();
-            continue;
         }
-
-        else if (result.status == PARSE_STATUS::INCOMPLETE)
-            continue;
         else if (result.status == PARSE_STATUS::ERROR) {
             parser.reset();            
-            break;}
+        }
+        else if (result.status == PARSE_STATUS::INCOMPLETE)
+            continue;
     }
 }
 
