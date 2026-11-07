@@ -24,7 +24,7 @@ public:
     bool del(const std::string& key) {
         // when erasing by key  — returns the number of elements removed
         return data_.erase(key);
-    };    
+    };
 private:
     std::unordered_map<std::string, T> data_;
 };
