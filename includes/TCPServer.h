@@ -19,7 +19,6 @@ private:
     void closeListener();
 
     std::string ip_ = "";
-    sockaddr_in client_addr_{};
     int port_ = 0;
     int listen_fd_ = -1;
 };

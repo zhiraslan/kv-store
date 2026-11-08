@@ -62,10 +62,10 @@ void Connection::run() {
 
         if (result.status == PARSE_STATUS::COMPLETE) {
             std::string reply = processor.execute(result.tokens);
-            
+
             if (!sendAll(reply))
                 break;
-
+                
             parser.reset();
         }
         else if (result.status == PARSE_STATUS::ERROR) {

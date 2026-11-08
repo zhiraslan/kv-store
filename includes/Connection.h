@@ -8,6 +8,8 @@
 class Connection {
 public:
     Connection(int client_fd, sockaddr_in client_addr);
+    Connection(const Connection&) = delete;
+    Connection& operator=(const Connection&) = delete;
     ~Connection();
     
     void run();
