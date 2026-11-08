@@ -3,32 +3,39 @@
 #include <arpa/inet.h>
 #include <cstdio>
 #include <iostream>
-#include <cctype>
-#include <algorithm>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <cstddef>
 #include "Connection.h"
 #include "RESPParser.h"
-#include "Service.h"
 #include "CommandProcessor.h"
 
 
-Connection::Connection(int client_fd, const std::array<char, INET_ADDRSTRLEN>& ip, int port)
+ Connection::Connection(int client_fd, sockaddr_in client_addr)
     : client_fd_{client_fd}
-    , ip_{ip}
-    , port_{port}  {
-        std::cout << "Client connected: " << ip_.data() << ':' << port_ << '\n';
+    , port_{ntohs(client_addr.sin_port)} {
+    std::array<char, INET_ADDRSTRLEN> ip_buffer{};
+
+    if (inet_ntop(AF_INET, &client_addr.sin_addr, ip_buffer.data(), static_cast<socklen_t>(ip_buffer.size())) == nullptr) {
+        std::perror("inet_ntop");
+        ip_ = "<unknown>";
     }
+    else {
+        ip_ = ip_buffer.data();
+    }
+  
+    std::cout << "Client connected: " << ip_.data() << ':' << port_ << '\n';
+}
 
 Connection::~Connection() {
     if (close(client_fd_) == -1) {
         std::perror("client socket");
     }
-
 }
 
 void Connection::run() {
     RESPParser parser;
     std::array<char, 1024> buffer;
-    Service* service = Service::instance();
     CommandProcessor processor;
 
     while (true) {
@@ -39,7 +46,7 @@ void Connection::run() {
             std::cout.flush();
         }
         else if (bytes_arrived == 0) {
-            std::cout << "Client disconnected: " << ip_.data() << ':' << ntohs(port_) << '\n';
+            std::cout << "Client disconnected: " << ip_ << ':' << port_ << '\n';
             break;
         }
         else if (bytes_arrived == -1) {
@@ -52,11 +59,12 @@ void Connection::run() {
 
         std::string chunk(buffer.data(), bytes_arrived);
         ParseResult result = parser.parseRESP(chunk);
-        RESP_OPERATOR oper = RESP_OPERATOR::UNKNOWN;
 
         if (result.status == PARSE_STATUS::COMPLETE) {
-            processor.execute(result.tokens);
+            std::string reply = processor.execute(result.tokens);
             
+            if (!sendAll(reply))
+                break;
 
             parser.reset();
         }
@@ -68,3 +76,23 @@ void Connection::run() {
     }
 }
 
+bool Connection::sendAll(const std::string& reply) {
+    size_t sent_total = 0;
+
+    while (sent_total < reply.size()) {
+        ssize_t sent = send(client_fd_, reply.data() + sent_total, reply.size() - sent_total, MSG_NOSIGNAL);
+
+        if (sent > 0) {
+            sent_total += static_cast<std::size_t>(sent);
+        }
+        else if (sent == -1 && errno == EINTR) {
+            continue;
+        }
+        else {
+            std::perror("send");
+            return false;
+        }
+    }
+
+    return true;
+}

@@ -105,68 +105,7 @@ void TCPServer::acceptLoop() {
             }            
         }
 
-        std::array<char, INET_ADDRSTRLEN> client_ip{};
-        if (inet_ntop(AF_INET, &client_addr.sin_addr, client_ip.data(), client_ip.size()) == nullptr) {
-            std::perror("inet_ntop");
-            
-            if (close(client_fd) == -1) {
-                std::perror("close client");
-            }
-        
-            continue;
-        }
-
-        Connection connection(client_fd, client_ip, client_addr.sin_port);
+        Connection connection(client_fd, client_addr);
         connection.run();
-        handleClient(client_fd);
     }
-}
-
-void TCPServer::handleClient(int client_fd) {
-    sockaddr_in client_addr{};
-    socklen_t client_address_size = sizeof(client_addr);
-    std::array<char, INET_ADDRSTRLEN> client_ip{};
-
-    if (getpeername(client_fd, reinterpret_cast<sockaddr*>(&client_addr), &client_address_size) == -1) {
-        std::perror("getpeername");
-        
-        if (close(client_fd) == -1) {
-            std::perror("close client");
-        }
-        
-        return;
-    }
-    else if (inet_ntop(AF_INET, &client_addr.sin_addr, client_ip.data(), client_ip.size()) == nullptr) {
-            std::perror("inet_ntop");
-
-            if (close(client_fd) == -1) {
-                std::perror("close client");
-            }
-        
-            return;
-    }    
-
-    std::array<char, 1024> buffer;
-
-    while (true) {
-        ssize_t bytes_arrived = recv(client_fd, buffer.data(), buffer.size(), 0);
-
-        if (bytes_arrived > 0) {
-            std::cout.write(buffer.data(), static_cast<std::streamsize>(bytes_arrived));
-            std::cout.flush();
-        }
-        else if (bytes_arrived == 0) {
-            std::cout << "Client disconnected: " << client_ip.data() << ':' << ntohs(client_addr.sin_port) << '\n';
-            break;
-        }
-        else if (bytes_arrived == -1) {
-            if (errno == EINTR) // errno - code of the last system error in the current stream
-                continue;
-            
-            std::perror("recv");
-            break;
-        }
-    }
-    
-    if (close(client_fd) == -1) std::perror("close client");
 }
