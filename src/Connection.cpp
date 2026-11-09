@@ -54,24 +54,26 @@ void Connection::run() {
                 continue;
             
             std::perror("recv");
-            break; 
+            break;
         }
 
         std::string chunk(buffer.data(), bytes_arrived);
-        ParseResult result = parser.parseRESP(chunk);
+        ParseResult parser_result = parser.parseRESP(chunk);
 
-        if (result.status == PARSE_STATUS::COMPLETE) {
-            std::string reply = processor.execute(result.tokens);
+        if (parser_result.status == PARSE_STATUS::COMPLETE) {
+            std::string reply = processor.execute(parser_result.tokens);
 
             if (!sendAll(reply))
                 break;
                 
             parser.reset();
         }
-        else if (result.status == PARSE_STATUS::ERROR) {
-            parser.reset();            
+        else if (parser_result.status == PARSE_STATUS::ERROR) {
+            std::string reply = "-ERR Protocol error\r\n";
+            sendAll(reply);
+            break;               
         }
-        else if (result.status == PARSE_STATUS::INCOMPLETE)
+        else if (parser_result.status == PARSE_STATUS::INCOMPLETE)
             continue;
     }
 }

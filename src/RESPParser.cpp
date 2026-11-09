@@ -26,7 +26,7 @@ ParseResult RESPParser::parseRESP(const std::string& input) {
                         n_tokens = std::stoi(substring);  // number of tokens
                     }
                     else {
-                        n_char_in_token = std::stoi(substring);
+                        n_char_in_token = std::stoi(substring); //////////////////////////////////////////////
                     }
                     state_ = PARSE_STATE::EXPECT_CRLF;
                     substring = "";

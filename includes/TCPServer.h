@@ -15,7 +15,6 @@ public:
 private:
     bool openListener();
     void acceptLoop();
-    void handleClient(int client_fd);
     void closeListener();
 
     std::string ip_ = "";

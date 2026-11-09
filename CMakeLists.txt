@@ -10,7 +10,8 @@ add_executable(kvstore
     src/Service.cpp 
     src/RESPParser.cpp
     src/TCPServer.cpp 
-    src/Connection.cpp)
+    src/Connection.cpp
+    src/CommandProcessor.cpp)
 
 target_include_directories(kvstore PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/includes")
 
