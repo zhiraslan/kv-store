@@ -2,16 +2,16 @@
 
 #include <string>
 #include <vector>
+#include <cstddef>
+#include "ParseContent.h"
 
 
-enum class PARSE_STATE {
-    EXPECT_ARRAY_PREFIX,
-    READ_ARRAY_LENGTH,
-    EXPECT_CRLF,
-    EXPECT_PAYLOAD_PREFIX,
-    READ_PAYLOAD_LENGTH,
-    READ_PAYLOAD_DATA
-};
+namespace resp_limits {
+    inline constexpr std::size_t MAX_PAYLOAD_NUMBER = 1024;
+    inline constexpr std::size_t MAX_PAYLOAD_SIZE = 1024 * 1024;
+    inline constexpr std::size_t MAX_COMMAND_BYTES = 4 * 1024 * 1024;
+}
+
 
 enum class PARSE_STATUS {    
     COMPLETE,
@@ -21,22 +21,11 @@ enum class PARSE_STATUS {
 
 struct ParseResult {
     PARSE_STATUS status;
-    std::vector<std::string> tokens;
+    std::size_t bytes_parsed = 0;
 };
-
 
 class RESPParser {
 public:
-    ParseResult parseRESP(const std::string& input);
-    void reset();
-    PARSE_STATUS getStatus() const;
-
-private:
-    PARSE_STATE state_ = PARSE_STATE::EXPECT_ARRAY_PREFIX;
-    PARSE_STATUS status_ = PARSE_STATUS::INCOMPLETE;
-    std::vector<std::string> tokens_{};
-    int n_tokens = 0;
-    int n_char_in_token = 0;
-    std::string substring = "";
-    bool pre_token_CRLF = false;
+    ParseResult parseRESP(const std::string& input, ParseContent& pc);
 };
+

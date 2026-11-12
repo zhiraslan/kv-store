@@ -46,7 +46,12 @@ void Connection::run() {
             std::cout.flush();
         }
         else if (bytes_arrived == 0) {
-            std::cout << "Client disconnected: " << ip_ << ':' << port_ << '\n';
+            if (content_.state == PARSE_STATE::EXPECT_ARRAY_PREFIX) {
+                std::cout << "Client disconnected: " << ip_ << ':' << port_ << '\n';
+            }
+            else {
+                std::cout << "Client disconnected: " << ip_ << ':' << port_ << " before completing the request.\n";
+            }
             break;
         }
         else if (bytes_arrived == -1) {
@@ -58,43 +63,76 @@ void Connection::run() {
         }
 
         std::string chunk(buffer.data(), bytes_arrived);
-        ParseResult parser_result = parser.parseRESP(chunk);
+        std::vector<std::string> replies{};
+        bool protocol_error = false;
 
-        if (parser_result.status == PARSE_STATUS::COMPLETE) {
-            std::string reply = processor.execute(parser_result.tokens);
-
-            if (!sendAll(reply))
+        while (chunk.size()) {
+            ParseResult parse_result = parser.parseRESP(chunk, content_);
+            
+            if (parse_result.status == PARSE_STATUS::COMPLETE) {
+                replies.push_back(processor.execute(content_.tokens));
+                chunk = chunk.substr(parse_result.bytes_parsed);
+                reset();
+            }
+            else if (parse_result.status == PARSE_STATUS::INCOMPLETE) {
                 break;
-                
-            parser.reset();
+            }
+            else if (parse_result.status == PARSE_STATUS::ERROR) {
+                replies.push_back(std::string("-ERR Protocol error\r\n"));
+                protocol_error = true;
+                break;
+            }
         }
-        else if (parser_result.status == PARSE_STATUS::ERROR) {
-            std::string reply = "-ERR Protocol error\r\n";
-            sendAll(reply);
-            break;               
-        }
-        else if (parser_result.status == PARSE_STATUS::INCOMPLETE)
-            continue;
+
+        if (!sendAll(replies))
+            return;
+
+        if (protocol_error)
+            return;
     }
 }
 
-bool Connection::sendAll(const std::string& reply) {
-    size_t sent_total = 0;
 
-    while (sent_total < reply.size()) {
-        ssize_t sent = send(client_fd_, reply.data() + sent_total, reply.size() - sent_total, MSG_NOSIGNAL);
+bool Connection::sendAll(const std::vector<std::string>& replies) {
+    for (const std::string& reply : replies) {
+        size_t sent_total = 0;
 
-        if (sent > 0) {
-            sent_total += static_cast<std::size_t>(sent);
-        }
-        else if (sent == -1 && errno == EINTR) {
-            continue;
-        }
-        else {
-            std::perror("send");
-            return false;
+        while (sent_total < reply.size()) {
+            ssize_t sent = send(
+                client_fd_,
+                reply.data() + sent_total,
+                reply.size() - sent_total,
+                MSG_NOSIGNAL
+            );
+
+            if (sent > 0) {
+                sent_total += static_cast<std::size_t>(sent);
+            }
+            else if (sent == -1 && errno == EINTR) {
+                continue;
+            }
+            else if (sent == 0) {
+                std::cerr << "Send returned 0; no data was sent to client.\n";
+                return false;
+            }
+            else {
+                std::perror("send");
+                return false;
+            }
         }
     }
 
     return true;
 }
+
+void Connection::reset() {
+    content_.state = PARSE_STATE::EXPECT_ARRAY_PREFIX;
+    content_.tokens = {};
+    content_.n_tokens = 0;
+    content_.n_char_in_token = 0;
+    content_.substring = "";
+    content_.pre_token_CRLF = false;
+    content_.bytes_in_command = 0;
+}
+
+

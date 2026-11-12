@@ -3,6 +3,8 @@
 #include<array>
 #include<netinet/in.h>
 #include<string>
+#include<vector>
+#include "ParseContent.h"
 
 
 class Connection {
@@ -12,13 +14,13 @@ public:
     Connection& operator=(const Connection&) = delete;
     ~Connection();
     
-    void run();
+    void run();    
 private:
-    bool sendAll(const std::string& reply);
+    bool sendAll(const std::vector<std::string>& replies);
+    void reset();
 
+    ParseContent content_;
     int client_fd_ = -1;
     std::string ip_{};
     int port_{};
-
-    std::array<char, 1024> buffer_{};    
 };
