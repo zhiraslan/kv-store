@@ -68,7 +68,12 @@ void Connection::run() {
 
         while (chunk.size()) {
             ParseResult parse_result = parser.parseRESP(chunk, content_);
-            
+            if (content_.tokens.empty()) {
+                replies.push_back(std::string("-ERR Protocol error\r\n"));
+                protocol_error = true;
+                break;
+            }
+
             if (parse_result.status == PARSE_STATUS::COMPLETE) {
                 replies.push_back(processor.execute(content_.tokens));
                 chunk = chunk.substr(parse_result.bytes_parsed);

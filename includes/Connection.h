@@ -1,9 +1,9 @@
 #pragma once
 
-#include<array>
-#include<netinet/in.h>
-#include<string>
-#include<vector>
+#include <array>
+#include <netinet/in.h>
+#include <string>
+#include <vector>
 #include "ParseContent.h"
 
 
