@@ -16,7 +16,7 @@ public:
     
     void run();    
 private:
-    bool sendAll(const std::vector<std::string>& replies);
+    bool sendAll(const std::string& replies);
     void reset();
 
     ParseContent content_;

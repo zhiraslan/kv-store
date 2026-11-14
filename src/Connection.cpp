@@ -9,6 +9,7 @@
 #include "Connection.h"
 #include "RESPParser.h"
 #include "CommandProcessor.h"
+#include "RESPReplies.h"
 
 
  Connection::Connection(int client_fd, sockaddr_in client_addr)
@@ -37,7 +38,7 @@ void Connection::run() {
     RESPParser parser;
     std::array<char, 1024> buffer;
     CommandProcessor processor;
-
+    
     while (true) {
         ssize_t bytes_arrived = recv(client_fd_, buffer.data(), buffer.size(), 0);
 
@@ -63,19 +64,21 @@ void Connection::run() {
         }
 
         std::string chunk(buffer.data(), bytes_arrived);
-        std::vector<std::string> replies{};
+        std::string response_data = "";
         bool protocol_error = false;
 
         while (chunk.size()) {
             ParseResult parse_result = parser.parseRESP(chunk, content_);
-            if (content_.tokens.empty()) {
-                replies.push_back(std::string("-ERR Protocol error\r\n"));
-                protocol_error = true;
-                break;
-            }
-
+            
             if (parse_result.status == PARSE_STATUS::COMPLETE) {
-                replies.push_back(processor.execute(content_.tokens));
+                if (content_.tokens.empty()) {
+                    response_data += std::string("-ERR empty command\r\n");
+                }
+                else {
+                    Command command(content_.tokens);
+                    response_data += processor.execute(command);
+                }
+                
                 chunk = chunk.substr(parse_result.bytes_parsed);
                 reset();
             }
@@ -83,13 +86,13 @@ void Connection::run() {
                 break;
             }
             else if (parse_result.status == PARSE_STATUS::ERROR) {
-                replies.push_back(std::string("-ERR Protocol error\r\n"));
+                response_data += std::string("-ERR Protocol error\r\n");
                 protocol_error = true;
                 break;
             }
         }
 
-        if (!sendAll(replies))
+        if (!sendAll(response_data))
             return;
 
         if (protocol_error)
@@ -98,32 +101,30 @@ void Connection::run() {
 }
 
 
-bool Connection::sendAll(const std::vector<std::string>& replies) {
-    for (const std::string& reply : replies) {
-        size_t sent_total = 0;
+bool Connection::sendAll(const std::string& response_data) {
+    size_t sent_total = 0;
 
-        while (sent_total < reply.size()) {
-            ssize_t sent = send(
-                client_fd_,
-                reply.data() + sent_total,
-                reply.size() - sent_total,
-                MSG_NOSIGNAL
-            );
+    while (sent_total < response_data.size()) {
+        ssize_t sent = send(
+            client_fd_,
+            response_data.data() + sent_total,
+            response_data.size() - sent_total,
+            MSG_NOSIGNAL
+        );
 
-            if (sent > 0) {
-                sent_total += static_cast<std::size_t>(sent);
-            }
-            else if (sent == -1 && errno == EINTR) {
-                continue;
-            }
-            else if (sent == 0) {
-                std::cerr << "Send returned 0; no data was sent to client.\n";
-                return false;
-            }
-            else {
-                std::perror("send");
-                return false;
-            }
+        if (sent > 0) {
+            sent_total += static_cast<std::size_t>(sent);
+        }
+        else if (sent == -1 && errno == EINTR) {
+            continue;
+        }
+        else if (sent == 0) {
+            std::cerr << "Send returned 0; no data was sent to client.\n";
+            return false;
+        }
+        else {
+            std::perror("send");
+            return false;
         }
     }
 
@@ -139,5 +140,3 @@ void Connection::reset() {
     content_.pre_token_CRLF = false;
     content_.bytes_in_command = 0;
 }
-
-

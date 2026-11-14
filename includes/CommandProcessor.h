@@ -9,8 +9,17 @@ enum class COMMAND_TYPE {
     GET,
     DEL,
     PING,
+    EMPTY_COMMAND,
     UNKNOWN
 };
+
+
+template<typename... Parts>
+std::string concatenate(const Parts&... parts) {
+    std::string result;
+    (result.append(std::string_view{parts}), ...);
+    return result;
+}
 
 
 struct Command {

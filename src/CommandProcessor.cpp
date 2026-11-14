@@ -1,8 +1,9 @@
 #include <cctype>
 #include <algorithm>
 #include <optional>
-#include "CommandProcessor.h"
 #include "Service.h"
+#include "CommandProcessor.h"
+#include "RESPReplies.h"
 
 
 std::string CommandProcessor::execute(const Command& command) {
@@ -29,43 +30,42 @@ std::string CommandProcessor::execute(const Command& command) {
     else if (command.name == "ping")
         type = COMMAND_TYPE::PING;
     else
-        return command.args.size() == 1
-            ? "-ERR unknown command '" + command.name + "'" + CRLF
-            : "-ERR unknown command '" + command.name + "', with args beginning with: '" + command.args[0] + "'" + CRLF;
+        return command.args.empty()
+            ? concatenate(resp::ERROR_UNKNOWN_COMMAND, command.name, "'", resp::CRLF)            
+            : concatenate(resp::ERROR_UNKNOWN_COMMAND, command.name, resp::ERROR_UNKNOWN_COMMAND_MULTIPLE_ARGUMENTS, command.args[0], "'", resp::CRLF);
     
     std::optional<std::string> value = std::nullopt;
-
     switch(type) {
         case COMMAND_TYPE::SET:
             if (command.args.size() != 3)
-                return "-ERR wrong number of arguments for '" + command.name + "' command" + CRLF;
-                
+                return concatenate(resp::ERROR_ARGUMENTS_NUMBER, command.name, "' command", resp::CRLF);
+
             service->set(command.args[1], command.args[2]);
-            reply = "+OK" + CRLF;
+            reply = resp::OK;
             break;
         case COMMAND_TYPE::GET:
             if (command.args.size() != 2)
-                return "-ERR wrong number of arguments for '" + command.name + "' command" + CRLF;
+                return concatenate(resp::ERROR_ARGUMENTS_NUMBER, command.name, "' command", resp::CRLF);
 
             value = service->get(command.args[1]);
-            reply = value.has_value() ? "$" + std::to_string(value->size()) + CRLF + *value + CRLF : "$-1" + CRLF;
+            reply = value.has_value() ? concatenate("$", std::to_string(value->size()), CRLF, *value, CRLF) : concatenate("$-1", CRLF);
             break;
         case COMMAND_TYPE::DEL: {
             if (command.args.size() < 2)
-                return "-ERR wrong number of arguments for '" + command.name + "' command" + CRLF;
+                return concatenate(resp::ERROR_ARGUMENTS_NUMBER, command.name, "' command", resp::CRLF);
             
             std::vector<std::string> keys(command.args.begin() + 1, command.args.end());
             std::size_t n_keys_deleted = service->del(keys);
-            reply = ":" + std::to_string(n_keys_deleted) + CRLF;
+            reply = concatenate(":", std::to_string(n_keys_deleted), CRLF);
             break;
         }
         case COMMAND_TYPE::PING:
             if (command.args.size() == 1)
-                reply = "+PONG" + CRLF;
+                reply = concatenate(resp::PONG, CRLF);
             else if (command.args.size() == 2)
-                reply = "$" + std::to_string(command.args[1].size()) + CRLF + command.args[1] + CRLF;
+                reply = concatenate("$", std::to_string(command.args[1].size()), CRLF, command.args[1], CRLF);
             else
-                reply = "-ERR wrong number of arguments for '" + command.name + "' command" + CRLF;
+                return concatenate(resp::ERROR_ARGUMENTS_NUMBER, command.name, "' command", resp::CRLF);
             break;
     };
 
