@@ -72,7 +72,7 @@ void Connection::run() {
             
             if (parse_result.status == PARSE_STATUS::COMPLETE) {
                 if (content_.tokens.empty()) {
-                    response_data += std::string("-ERR empty command\r\n");
+                    response_data += resp::ERROR_EMPTY_COMMAND;
                 }
                 else {
                     Command command(content_.tokens);
@@ -86,7 +86,7 @@ void Connection::run() {
                 break;
             }
             else if (parse_result.status == PARSE_STATUS::ERROR) {
-                response_data += std::string("-ERR Protocol error\r\n");
+                response_data += resp::ERROR_PROTOCOL;
                 protocol_error = true;
                 break;
             }
