@@ -21,10 +21,10 @@ find_package(GTest REQUIRED)
 
 add_executable(kvtests
     tests/test_storage.cpp
-    tests/test_service.cpp
-    tests/test_RESPParser.cpp
     src/Service.cpp
-    src/RESPParser.cpp)
+    tests/test_service.cpp
+    src/CommandProcessor.cpp
+    tests/test_CommandProcessor.cpp)
 
 target_link_libraries(kvtests PRIVATE GTest::gtest_main)
 
