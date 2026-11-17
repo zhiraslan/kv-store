@@ -5,7 +5,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-#include <array>
 #include <cerrno>
 #include "TCPServer.h"
 #include "Connection.h"
@@ -20,13 +19,15 @@ TCPServer::~TCPServer() {
 }
 
 void TCPServer::closeListener() {
-    if (listen_fd_ != -1) {
-        if (close(listen_fd_) == -1) {
+    if (listen_fd_.get() != -1) {
+        if (close(listen_fd_.get()) == -1) {
             std::perror("close listening socket");
         }
         
         listen_fd_ = -1;
     }
+
+    listen_fd_ = Socket{-1};
 }
 
 void TCPServer::run() {
@@ -37,9 +38,9 @@ void TCPServer::run() {
 
 bool TCPServer::openListener() {
     // creating a server listening socket
-    listen_fd_ = socket(AF_INET, SOCK_STREAM, 0);
+    listen_fd_ = Socket{socket(AF_INET, SOCK_STREAM, 0)};
 
-    if (listen_fd_ == -1) {
+    if (listen_fd_.get() == -1) {
         std::perror("socket");
         return false;
     }
@@ -62,7 +63,7 @@ bool TCPServer::openListener() {
         return false;
     }
 
-    result = bind(listen_fd_, reinterpret_cast<sockaddr*>(&address), sizeof(address)); // to figure out reinterpret_cast
+    result = bind(listen_fd_.get(), reinterpret_cast<sockaddr*>(&address), sizeof(address)); // to figure out reinterpret_cast
 
     if (result == -1) {
         std::perror("bind");
@@ -70,7 +71,7 @@ bool TCPServer::openListener() {
         return false;
     }
 
-    if (listen(listen_fd_, SOMAXCONN) == -1) {
+    if (listen(listen_fd_.get(), SOMAXCONN) == -1) {
         std::perror("listen");
         closeListener();
         return false;
@@ -84,7 +85,7 @@ void TCPServer::acceptLoop() {
         sockaddr_in client_addr{};
         socklen_t address_size = sizeof(client_addr);
 
-        int client_fd = accept(listen_fd_, reinterpret_cast<sockaddr*>(&client_addr), &address_size);  // to figure out the nullptrs
+        int client_fd = accept(listen_fd_.get(), reinterpret_cast<sockaddr*>(&client_addr), &address_size);  // to figure out the nullptrs
 
         if (client_fd == -1) {
             switch(errno) {

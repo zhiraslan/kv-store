@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include "Socket.h"
 
 
 class TCPServer {
@@ -19,5 +20,5 @@ private:
 
     std::string ip_ = "";
     int port_ = 0;
-    int listen_fd_ = -1;
+    Socket listen_fd_;
 };
