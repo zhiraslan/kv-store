@@ -20,5 +20,5 @@ private:
 
     std::string ip_ = "";
     int port_ = 0;
-    Socket listen_fd_;
+    Socket listen_fd_{-1};
 };

@@ -6,14 +6,15 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <cstddef>
+#include <utility>
 #include "Connection.h"
 #include "RESPParser.h"
 #include "CommandProcessor.h"
 #include "RESPReplies.h"
 
 
- Connection::Connection(int client_fd, sockaddr_in client_addr)
-    : client_fd_{client_fd}
+ Connection::Connection(Socket client_fd, sockaddr_in client_addr)
+    : client_fd_{std::move(client_fd)}
     , port_{ntohs(client_addr.sin_port)} {
     std::array<char, INET_ADDRSTRLEN> ip_buffer{};
 
@@ -28,19 +29,13 @@
     std::cout << "Client connected: " << ip_.data() << ':' << port_ << '\n';
 }
 
-Connection::~Connection() {
-    if (close(client_fd_) == -1) {
-        std::perror("client socket");
-    }
-}
-
 void Connection::run() {
     RESPParser parser;
     std::array<char, 1024> buffer;
     CommandProcessor processor;
     
     while (true) {
-        ssize_t bytes_arrived = recv(client_fd_, buffer.data(), buffer.size(), 0);
+        ssize_t bytes_arrived = recv(client_fd_.get(), buffer.data(), buffer.size(), 0);
 
         if (bytes_arrived > 0) {
             std::cout.write(buffer.data(), static_cast<std::streamsize>(bytes_arrived));
@@ -106,7 +101,7 @@ bool Connection::sendAll(const std::string& response_data) {
 
     while (sent_total < response_data.size()) {
         ssize_t sent = send(
-            client_fd_,
+            client_fd_.get(),
             response_data.data() + sent_total,
             response_data.size() - sent_total,
             MSG_NOSIGNAL

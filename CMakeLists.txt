@@ -7,7 +7,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(kvstore
     main.cpp
-    src/Service.cpp 
+    src/Socket.cpp
+    src/Service.cpp
     src/RESPParser.cpp
     src/TCPServer.cpp 
     src/Connection.cpp

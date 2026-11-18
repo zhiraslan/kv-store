@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <cerrno>
+#include <utility>
 #include "TCPServer.h"
 #include "Connection.h"
 
@@ -19,14 +20,6 @@ TCPServer::~TCPServer() {
 }
 
 void TCPServer::closeListener() {
-    if (listen_fd_.get() != -1) {
-        if (close(listen_fd_.get()) == -1) {
-            std::perror("close listening socket");
-        }
-        
-        listen_fd_ = -1;
-    }
-
     listen_fd_ = Socket{-1};
 }
 
@@ -85,9 +78,9 @@ void TCPServer::acceptLoop() {
         sockaddr_in client_addr{};
         socklen_t address_size = sizeof(client_addr);
 
-        int client_fd = accept(listen_fd_.get(), reinterpret_cast<sockaddr*>(&client_addr), &address_size);  // to figure out the nullptrs
+        Socket client_fd{accept(listen_fd_.get(), reinterpret_cast<sockaddr*>(&client_addr), &address_size)};  // to figure out the nullptrs
 
-        if (client_fd == -1) {
+        if (client_fd.get() == -1) {
             switch(errno) {
                 case EINTR:
                 case ECONNABORTED:
@@ -106,7 +99,7 @@ void TCPServer::acceptLoop() {
             }            
         }
 
-        Connection connection(client_fd, client_addr);
+        Connection connection(std::move(client_fd), client_addr);
         connection.run();
     }
 }
