@@ -24,6 +24,8 @@ add_executable(kvtests
     tests/test_storage.cpp
     src/Service.cpp
     tests/test_service.cpp
+    src/RESPParser.cpp
+    tests/test_RESPParser.cpp
     src/CommandProcessor.cpp
     tests/test_CommandProcessor.cpp)
 
