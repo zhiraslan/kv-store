@@ -27,7 +27,10 @@ add_executable(kvtests
     src/RESPParser.cpp
     tests/test_RESPParser.cpp
     src/CommandProcessor.cpp
-    tests/test_CommandProcessor.cpp)
+    tests/test_commandProcessor.cpp
+    src/Connection.cpp
+    src/Socket.cpp
+    tests/test_connection.cpp)
 
 target_link_libraries(kvtests PRIVATE GTest::gtest_main)
 

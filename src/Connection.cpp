@@ -1,5 +1,6 @@
 #include <cerrno>
 #include <unistd.h>
+#include <array>
 #include <arpa/inet.h>
 #include <cstdio>
 #include <iostream>
