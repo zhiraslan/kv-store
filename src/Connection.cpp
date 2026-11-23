@@ -31,7 +31,7 @@
 
 void Connection::run() {
     RESPParser parser;
-    std::array<char, 1024> buffer;
+    std::array<char, 1024> buffer{};
     CommandProcessor processor;
     
     while (true) {
@@ -100,7 +100,7 @@ bool Connection::sendAll(const std::string& response_data) {
     size_t sent_total = 0;
 
     while (sent_total < response_data.size()) {
-        ssize_t sent = send(
+        ssize_t sent = send( 
             client_fd_.get(),
             response_data.data() + sent_total,
             response_data.size() - sent_total,
